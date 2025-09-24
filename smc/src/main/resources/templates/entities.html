@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${title}">Список сущностей</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .sidebar {
+        background: #2c3e50;
+        min-height: 100vh;
+        color: white;
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 280px;
+        z-index: 1000;
+        transition: all 0.3s ease;
+      }
+      .sidebar.collapsed {
+        width: 60px;
+      }
+      .sidebar-header {
+        padding: 20px;
+        border-bottom: 1px solid #34495e;
+        text-align: center;
+      }
+      .sidebar-header h4 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: bold;
+      }
+      .sidebar-menu {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+      }
+      .sidebar-menu li {
+        border-bottom: 1px solid #34495e;
+      }
+      .sidebar-menu a {
+        display: block;
+        padding: 15px 20px;
+        color: #ecf0f1;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+      .sidebar-menu a:hover {
+        background: #34495e;
+        color: #3498db;
+      }
+      .sidebar-menu a.active {
+        background: #3498db;
+        color: white;
+      }
+      .sidebar-menu i {
+        width: 20px;
+        margin-right: 10px;
+        text-align: center;
+      }
+      .main-content {
+        margin-left: 280px;
+        transition: all 0.3s ease;
+      }
+      .main-content.expanded {
+        margin-left: 60px;
+      }
+      .top-bar {
+        background: white;
+        padding: 15px 30px;
+        border-bottom: 1px solid #dee2e6;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .content-area {
+        padding: 30px;
+      }
+      .entity-card {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+      .entity-card:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+      }
+      .entity-card.selected {
+        border-color: #3498db;
+        background: #f8f9fa;
+      }
+      .entity-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-right: 15px;
+      }
+      .entity-info h5 {
+        margin: 0 0 5px 0;
+        color: #2c3e50;
+      }
+      .entity-info p {
+        margin: 0;
+        color: #7f8c8d;
+        font-size: 0.9rem;
+      }
+      .toggle-sidebar {
+        background: none;
+        border: none;
+        color: #2c3e50;
+        font-size: 1.2rem;
+        cursor: pointer;
+      }
+      .search-box {
+        position: relative;
+        max-width: 400px;
+      }
+      .search-box input {
+        padding-left: 40px;
+      }
+      .search-box i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #7f8c8d;
+      }
+      .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+      }
+      .stats-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+      .table-hover tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.1);
+      }
+      .table-active {
+        background-color: rgba(0, 123, 255, 0.2) !important;
+      }
+      .entity-icon {
+        transition: transform 0.2s ease;
+      }
+      .entity-icon:hover {
+        transform: scale(1.1);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Боковая панель -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h4 id="sidebar-title">ФОНД РЕНОВАЦИИ<br />SBER CRM</h4>
+      </div>
+      <ul class="sidebar-menu">
+        <li>
+          <a href="/" class="active">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Рабочий стол</span>
+          </a>
+        </li>
+        <li>
+          <a href="/entities">
+            <i class="fas fa-list"></i>
+            <span>Сущности</span>
+          </a>
+        </li>
+        <li>
+          <a href="/entity-values">
+            <i class="fas fa-table"></i>
+            <span>Значения</span>
+          </a>
+        </li>
+        <li>
+          <a href="/stats">
+            <i class="fas fa-chart-bar"></i>
+            <span>Статистика</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="main-content" id="mainContent">
+      <!-- Верхняя панель -->
+      <div class="top-bar">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+            <button class="toggle-sidebar me-3" onclick="toggleSidebar()">
+              <i class="fas fa-bars"></i>
+            </button>
+            <h4 class="mb-0">Сущности</h4>
+          </div>
+          <div class="search-box">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Поиск сущностей..."
+              id="searchInput"
+            />
+            <i class="fas fa-search"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Область контента -->
+      <div class="content-area">
+        <!-- Статистика -->
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <div class="stats-card">
+              <div class="stats-number" th:text="${#lists.size(entities)}">
+                0
+              </div>
+              <h6>Всего сущностей</h6>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stats-card">
+              <div class="stats-number" th:text="${#lists.size(entities)}">
+                0
+              </div>
+              <h6>Активных</h6>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stats-card">
+              <div class="stats-number">35</div>
+              <h6>Значений</h6>
+            </div>
+          </div>
+        </div>
+
+        <!-- Сообщение об ошибке -->
+        <div th:if="${error}" class="row mb-3">
+          <div class="col-12">
+            <div class="alert alert-warning" role="alert">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <span th:text="${error}">Ошибка</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Список сущностей -->
+        <div class="row">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="fas fa-list me-2"></i>
+                  Список сущностей
+                </h5>
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th style="width: 20%">
+                          <i class="fas fa-sort-down me-1"></i>
+                          Название
+                        </th>
+                        <th style="width: 20%">Метка</th>
+                        <th style="width: 30%">Описание</th>
+                        <th style="width: 15%">Цвет</th>
+                        <th style="width: 15%">Действия</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr th:if="${#lists.isEmpty(entities)}">
+                        <td colspan="5" class="text-center text-muted py-4">
+                          <i class="fas fa-inbox fa-2x mb-2"></i>
+                          <br>
+                          Нет данных для отображения
+                        </td>
+                      </tr>
+                      <tr
+                        th:each="entity : ${entities}"
+                        th:onclick="'selectEntity(' + ${entity.id} + ')'"
+                        style="cursor: pointer"
+                      >
+                        <td>
+                          <div class="d-flex align-items-center">
+                            <div
+                              class="entity-icon me-2"
+                              th:style="'background-color: ' + ${entity.color ?: '#3498db'} + '; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;'"
+                            >
+                              <i
+                                th:class="'fas fa-' + ${entity.icon ?: 'cube'}"
+                              ></i>
+                            </div>
+                            <span th:text="${entity.name}" class="fw-bold"
+                              >Название</span
+                            >
+                          </div>
+                        </td>
+                        <td th:text="${entity.label}">Метка</td>
+                        <td
+                          th:text="${entity.description ?: 'Нет описания'}"
+                          class="text-muted"
+                        >
+                          Описание
+                        </td>
+                        <td>
+                          <span
+                            th:if="${entity.color}"
+                            th:style="'background-color: ' + ${entity.color} + '; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;'"
+                            th:text="${entity.color}"
+                          >
+                            Цвет
+                          </span>
+                          <span th:unless="${entity.color}" class="text-muted"
+                            >Не указан</span
+                          >
+                        </td>
+                        <td>
+                          <div class="btn-group btn-group-sm">
+                            <button
+                              class="btn btn-outline-primary btn-sm"
+                              th:onclick="'editEntity(\'' + ${entity.id} + '\')'"
+                            >
+                              <i class="fas fa-edit"></i>
+                            </button>
+                            <button
+                              class="btn btn-outline-info btn-sm"
+                              th:onclick="'viewEntity(\'' + ${entity.id} + '\')'"
+                            >
+                              <i class="fas fa-eye"></i>
+                            </button>
+                            <button
+                              class="btn btn-outline-success btn-sm"
+                              th:onclick="'viewValues(\'' + ${entity.id} + '\')'"
+                            >
+                              <i class="fas fa-table"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Детальная информация (будет показываться при выборе сущности) -->
+        <div class="row mt-4" id="entityDetails" style="display: none">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                  <i class="fas fa-info-circle me-2"></i>
+                  Детальная информация
+                </h5>
+              </div>
+              <div class="card-body" id="entityDetailsContent">
+                <!-- Здесь будет загружаться детальная информация -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarTitle = document.getElementById('sidebar-title');
+
+        sidebar.classList.toggle('collapsed');
+        mainContent.classList.toggle('expanded');
+
+        if (sidebar.classList.contains('collapsed')) {
+          sidebarTitle.innerHTML = '<i class="fas fa-database"></i>';
+        } else {
+          sidebarTitle.innerHTML = 'ФОНД РЕНОВАЦИИ<br>SBER CRM';
+        }
+      }
+
+      function selectEntity(entityId) {
+        // Убираем выделение со всех строк
+        document.querySelectorAll('tbody tr').forEach((row) => {
+          row.classList.remove('table-active');
+        });
+
+        // Выделяем выбранную строку
+        event.currentTarget.classList.add('table-active');
+
+        // Показываем детальную информацию
+        const detailsDiv = document.getElementById('entityDetails');
+        const contentDiv = document.getElementById('entityDetailsContent');
+
+        detailsDiv.style.display = 'block';
+        contentDiv.innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                    <p class="mt-2">Загрузка информации о сущности...</p>
+                </div>
+            `;
+
+        // Здесь можно добавить AJAX запрос для получения детальной информации
+        setTimeout(() => {
+          contentDiv.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Основная информация</h6>
+                            <p><strong>ID:</strong> ${entityId}</p>
+                            <p><strong>Статус:</strong> Активна</p>
+                            <p><strong>Создана:</strong> ${new Date().toLocaleDateString()}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Действия</h6>
+                            <button class="btn btn-primary btn-sm me-2">
+                                <i class="fas fa-edit me-1"></i>Редактировать
+                            </button>
+                            <button class="btn btn-success btn-sm me-2">
+                                <i class="fas fa-eye me-1"></i>Просмотр
+                            </button>
+                            <button class="btn btn-info btn-sm">
+                                <i class="fas fa-table me-1"></i>Значения
+                            </button>
+                        </div>
+                    </div>
+                `;
+        }, 1000);
+      }
+
+      function editEntity(entityId) {
+        event.stopPropagation();
+        alert('Редактирование сущности: ' + entityId);
+      }
+
+      function viewEntity(entityId) {
+        event.stopPropagation();
+        alert('Просмотр сущности: ' + entityId);
+      }
+
+      function viewValues(entityId) {
+        event.stopPropagation();
+        window.location.href = '/entity-values?entityId=' + entityId;
+      }
+
+      // Поиск по сущностям
+      document
+        .getElementById('searchInput')
+        .addEventListener('input', function (e) {
+          const searchTerm = e.target.value.toLowerCase();
+          const tableRows = document.querySelectorAll('tbody tr');
+
+          tableRows.forEach((row) => {
+            const entityName = row.cells[0].textContent.toLowerCase();
+            const entityLabel = row.cells[1].textContent.toLowerCase();
+            const entityDescription = row.cells[2].textContent.toLowerCase();
+
+            if (
+              entityName.includes(searchTerm) ||
+              entityLabel.includes(searchTerm) ||
+              entityDescription.includes(searchTerm)
+            ) {
+              row.style.display = '';
+            } else {
+              row.style.display = 'none';
+            }
+          });
+        });
+    </script>
+  </body>
+</html>
