@@ -2,9 +2,9 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://my-remote-server-database:3306/rebounder_database?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
-    username: admin
-    password: 12345
+    url: jdbc:mysql://mezhinjp2.beget.tech:3306/rebounder_database?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+    username: mezhinjp2_mfr
+    password: 4eQ6Nr4O8&7Z
 
   jpa:
     hibernate:
