@@ -1,4 +1,4 @@
-package com.smc.demo.services;
+package com.smc.demo.service;
 
 import com.smc.demo.model.User;
 import com.smc.demo.repository.UserRepository;
@@ -17,7 +17,7 @@ public class UserService {
         this.userRepository = userRepository;
     };
 
-    public Object findById(Long id){
+    public Object findById(String id){
        return userRepository.findById(id);
     }
     public List<User> findAll(){
@@ -26,7 +26,7 @@ public class UserService {
     public User saveUser(User user){
         return userRepository.save(user);
     }
-    public void deleteById(Long id){
+    public void deleteById(String id){
         userRepository.deleteById(id);
     }
 }

@@ -1,7 +1,7 @@
 package com.smc.demo.controller;
 
 import com.smc.demo.model.User;
-import com.smc.demo.services.UserService;
+import com.smc.demo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
