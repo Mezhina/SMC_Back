@@ -1,20 +1,173 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
-<meta charset="UTF-8">
-<title>Create user</title>
-</head>
-<body>
-<form action="#" th:action="@{/user-update}" th:object="${user}" method="post">
-    <label for="id">ID</label>
-    <input readonly type="number" th:field="*{id}" id="id" placeholder="ID">
-    <br/>
-    <label for="firstName">First name</label>
-    <input type="text" th:field="*{firstName}" id="firstName" placeholder="First Name">
-    <br/>
-    <label for="lastName">Last name</label>
-    <input type="text" th:field="*{lastName}" id="lastName" placeholder="Last Name">
-    <br/>
-    <input type="submit" value="Update User">
-</form>
-</body>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Список пользователей</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f4f4f4;
+      }
+      .header {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .logout-btn {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .logout-btn:hover {
+        background-color: #c82333;
+      }
+      .container {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333;
+        margin-bottom: 2rem;
+      }
+      .add-user-btn {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        text-decoration: none;
+        display: inline-block;
+        margin-bottom: 2rem;
+      }
+      .add-user-btn:hover {
+        background-color: #0056b3;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+      th,
+      td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+      }
+      tr:hover {
+        background-color: #f5f5f5;
+      }
+      .role-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: bold;
+      }
+      .role-USER {
+        background-color: #e3f2fd;
+        color: #1976d2;
+      }
+      .role-ADMIN {
+        background-color: #fff3e0;
+        color: #f57c00;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>Система управления пользователями</h1>
+      <div class="user-info">
+        <span th:if="${currentUser}">
+          Добро пожаловать,
+          <strong
+            th:text="${currentUser.firstName + ' ' + currentUser.lastName}"
+          ></strong
+          >!
+          <span
+            class="role-badge"
+            th:classappend="'role-' + ${currentUser.role}"
+            th:text="${currentUser.role}"
+          ></span>
+        </span>
+        <a href="/logout" class="logout-btn">Выйти</a>
+      </div>
+    </div>
+
+    <div class="container">
+      <a href="/user-create" class="add-user-btn">Добавить пользователя</a>
+
+      <h2>Список пользователей</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Имя пользователя</th>
+            <th>Имя</th>
+            <th>Фамилия</th>
+            <th>Отчество</th>
+            <th>Email</th>
+            <th>Роль</th>
+            <th>Статус</th>
+            <th>Дата создания</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="user : ${users}">
+            <td th:text="${user.id}"></td>
+            <td th:text="${user.username}"></td>
+            <td th:text="${user.firstName}"></td>
+            <td th:text="${user.lastName}"></td>
+            <td th:text="${user.middleName}"></td>
+            <td th:text="${user.email}"></td>
+            <td>
+              <span
+                class="role-badge"
+                th:classappend="'role-' + ${user.role}"
+                th:text="${user.role}"
+              ></span>
+            </td>
+            <td>
+              <span th:if="${user.enabled}" style="color: green">Активен</span>
+              <span th:unless="${user.enabled}" style="color: red"
+                >Заблокирован</span
+              >
+            </td>
+            <td
+              th:text="${#temporals.format(user.created, 'dd.MM.yyyy HH:mm')}"
+            ></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div
+        th:if="${#lists.isEmpty(users)}"
+        style="text-align: center; padding: 2rem; color: #666"
+      >
+        Пользователи не найдены
+      </div>
+    </div>
+  </body>
 </html>
